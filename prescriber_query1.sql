@@ -81,7 +81,7 @@ FROM prescriber AS A
 LEFT JOIN prescription AS B
 ON A.npi = B.npi
 --WHERE B.npi IS NULL
-EXCEPT 
+--EXCEPT 
 GROUP BY specialty_description; --needs to be modified for missing NPI to get speciality
 
 --92 speciality out of 107 are not in the prescription dataset. 4458 prescribers are not there in the prescription dataset.
@@ -89,10 +89,30 @@ GROUP BY specialty_description; --needs to be modified for missing NPI to get sp
 --Q2d. Difficult Bonus: Do not attempt until you have solved all other problems! For each specialty, report the percentage of total claims by that specialty which are for opioids. Which specialties have a high percentage of opioids?
 
 --Q3a. Which drug (generic_name) had the highest total drug cost?
-SELECT drug_name, MAX(total_drug_cost) AS high_cost
+SELECT drug_name, MAX(total_drug_cost) AS drugcost
 FROM prescription
 GROUP BY drug_name
-ORDER BY high_cost DESC;
+ORDER BY drugcost DESC;
 
+--"ESBRIET"	2829174.30 has the max drug price
 
+--Q3b. b. Which drug (generic_name) has the hightest total cost per day? Bonus: Round your cost per day column to 2 decimal places. Google ROUND to see how this works.
+
+SELECT 
+	  generic_name, 
+-- 	total_day_supply,
+-- 	total_drug_cost,
+	ROUND(SUM(total_drug_cost)/SUM(total_day_supply), 2) AS perday_cost
+FROM prescription AS A
+INNER JOIN drug AS B
+ON A.drug_name = B.drug_name
+GROUP BY generic_name 
+ORDER BY perday_cost DESC;
+
+--"C1 Esterase Inhibitor" CINRYZE is the most expensive drug has a perday cost of 3495.22
+
+--Q4a. For each drug in the drug table, return the drug name and then a column named 'drug_type' which says 'opioid' for drugs which have opioid_drug_flag = 'Y', says 'antibiotic' for those drugs which have antibiotic_drug_flag = 'Y', and says 'neither' for all other drugs.
+
+SELECT drug_name
+FROM drug
 
