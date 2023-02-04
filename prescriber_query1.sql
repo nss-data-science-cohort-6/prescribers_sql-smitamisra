@@ -173,3 +173,40 @@ WHERE c.fipscounty IS NULL
 ORDER BY p.population DESC;
 
 --SEVIER county is not included population as 95523. Total 53 county are not included.
+
+--Q6a. Find all rows in the prescription table where total_claims is at least 3000. Report the drug_name and the total_claim_count.
+
+SELECT drug_name, total_claim_count
+FROM prescription
+WHERE total_claim_count >= 3000;
+--9 drugs have above 3000 caims
+
+--Q6b. For each instance that you found in part a, add a column that indicates whether the drug is an opioid.
+SELECT fd.drug_name, b.total_claim_count,
+		(CASE WHEN opioid_drug_flag = 'Y' THEN 'opioid_YES'
+         ELSE 'opioid_NO'
+        END) AS drug_type
+	FROM drug as fd
+LEFT JOIN prescription AS B
+	ON fd.drug_name = B.drug_name
+WHERE B.total_claim_count >= 3000
+ORDER BY B.total_claim_count DESC;
+--out of 9 two are YES for opioid
+
+--Q6c. Add another column to you answer from the previous part which gives the prescriber first and last name associated with each row.
+SELECT fd.drug_name, 
+		b.total_claim_count, 
+		p.nppes_provider_first_name AS provider_first_name,
+		p.nppes_provider_last_org_name AS provider_last_name,
+		(CASE WHEN opioid_drug_flag = 'Y' THEN 'opioid_YES'
+         ELSE 'opioid_NO'
+        END) AS drug_type
+	FROM drug as fd
+LEFT JOIN prescription AS B
+	ON fd.drug_name = B.drug_name
+LEFT JOIN prescriber AS p
+	ON B.npi = p.npi
+WHERE B.total_claim_count >= 3000
+ORDER BY B.total_claim_count DESC;
+--DAVID COFFEY is the provider giving both the OPIOID prescription with a clam count over 3000.
+
