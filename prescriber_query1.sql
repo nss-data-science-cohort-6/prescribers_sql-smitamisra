@@ -120,4 +120,53 @@ SELECT fd.drug_name, (CASE WHEN opioid_drug_flag = 'Y' AND antibiotic_drug_flag 
        --fd.drug_name
 	   FROM drug fd;
 
---Q4b. 
+--Q4b. Building off of the query you wrote for part a, determine whether more was spent (total_drug_cost) on opioids or on antibiotics. Hint: Format the total costs as MONEY for easier comparision.
+
+SELECT (CASE WHEN opioid_drug_flag = 'Y' AND antibiotic_drug_flag = 'N' THEN 'opioid'
+             WHEN opioid_drug_flag = 'N' AND antibiotic_drug_flag = 'Y' THEN 'antibiotic'
+             ELSE 'neither'
+        END) AS drug_type,
+		COALESCE(SUM(B.total_drug_cost), 0) AS cost
+       --fd.drug_name
+	   FROM drug fd
+LEFT JOIN prescription AS B
+ON fd.drug_name = B.drug_name
+GROUP BY drug_type
+ORDER BY cost DESC;
+
+---more money is spent on opioid compared to antibiotics.
+
+--Q5a. How many CBSAs are in Tennessee? Warning: The cbsa table contains information for all states, not just Tennessee
+
+SELECT *
+FROM population;
+--there are three columns and 1238 rows in cbsa
+SELECT cbsaname, COUNT(DISTINCT c.cbsa)
+FROM cbsa AS c
+WHERE cbsaname LIKE '%TN%'
+GROUP BY cbsaname;
+--There are 10 cbsa for TN
+
+--Q5b. Which cbsa has the largest combined population? Which has the smallest? Report the CBSA name and total population.
+
+SELECT c.cbsa, c.cbsaname, 
+	SUM(p.population)as total_pop
+FROM population as p
+LEFT JOIN cbsa as c
+	ON p.fipscounty = c.fipscounty
+GROUP BY c.cbsa, c.cbsaname
+--ORDER BY total_pop ASC;
+ORDER BY total_pop DESC;
+
+--SMALLEST::"34100"	"Morristown, TN"	116352
+--LARGEST::"34980"	"Nashville-Davidson--Murfreesboro--Franklin, TN"	1830410
+
+--Q5c.What is the largest (in terms of population) county which is not included in a CBSA? Report the county name and population
+
+SELECT c.cbsaname, p.population, n.county
+FROM population as p
+LEFT JOIN cbsa as c
+	ON p.fipscounty = c.fipscounty
+LEFT JOIN fips_county as n
+	ON c.fipscounty = n.fipscounty
+WHERE c.fipscounty IS NULL;
