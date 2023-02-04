@@ -163,10 +163,13 @@ ORDER BY total_pop DESC;
 
 --Q5c.What is the largest (in terms of population) county which is not included in a CBSA? Report the county name and population
 
-SELECT c.cbsaname, p.population, n.county
+SELECT  p.population, fc.county
 FROM population as p
+LEFT JOIN fips_county as fc
+	ON p.fipscounty = fc.fipscounty
 LEFT JOIN cbsa as c
-	ON p.fipscounty = c.fipscounty
-LEFT JOIN fips_county as n
-	ON c.fipscounty = n.fipscounty
-WHERE c.fipscounty IS NULL;
+	ON c.fipscounty = fc.fipscounty
+WHERE c.fipscounty IS NULL
+ORDER BY p.population DESC;
+
+--SEVIER county is not included population as 95523. Total 53 county are not included.
