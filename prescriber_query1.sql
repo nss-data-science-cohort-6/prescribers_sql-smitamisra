@@ -347,5 +347,92 @@ FULL JOIN prescription AS c
 	WHERE p.specialty_description = 'Pain Management'
 	AND p.nppes_provider_city = 'NASHVILLE'
 	AND fd.opioid_drug_flag = 'Y'
+----bonus Questions
+--B1. How many npi numbers appear in the prescriber table but not in the prescription table?
+
+SELECT COUNT(DISTINCT npi)
+FROM prescriber as p
+LEFT JOIN prescription as rx
+	USING(npi)
+WHERE rx.npi IS NULL
+--4458 npi not in prescription but in prescriber
+--B2a Find the top five drugs (generic_name) prescribed by prescribers with the specialty of Family Practice.
+
+SELECT fd.generic_name,
+	SUM(c.total_claim_count) as totalcount
+FROM prescription as c
+LEFT JOIN prescriber as p
+	USING(npi)
+LEFT JOIN drug as fd
+	USING(drug_name)
+WHERE p.specialty_description = 'Family Practice'	
+GROUP BY fd.generic_name
+ORDER BY totalcount DESC
+LIMIT 5;
+
+--top five 406547 drugs LEVOTHYROXINE SODIUM, LISINOPRIL, ATORVASTATIN CALCIUM, AMLODIPINE BESYLATE, OMEPRAZOLE
+
+--B2b. Find the top five drugs (generic_name) prescribed by prescribers with the specialty of Cardiology.
+SELECT fd.generic_name,
+	SUM(c.total_claim_count) as totalcount
+FROM prescription as c
+LEFT JOIN prescriber as p
+	USING(npi)
+LEFT JOIN drug as fd
+	USING(drug_name)
+WHERE p.specialty_description = 'Cardiology'	
+GROUP BY fd.generic_name
+ORDER BY totalcount DESC
+LIMIT 5;
+
+--top 5 for cardiologist are ATORVASTATIN CALCIUM, CARVEDILOL, METOPROLOL TARTRATE, CLOPIDOGREL BISULFATE, AMLODIPINE BESYLATE
+
+--Q2c. Which drugs appear in the top five prescribed for both Family Practice prescribers and Cardiologists? Combine what you did for parts a and b into a single query to answer this question.
+
+-- SELECT fd.generic_name,
+-- 	SUM(c.total_claim_count) as totalcount
+-- FROM prescription as c
+-- LEFT JOIN prescriber as p
+-- 	USING(npi)
+-- LEFT JOIN drug as fd
+-- 	USING(drug_name)
+-- WHERE p.specialty_description IN ('Cardiology', 'Family Practice')	
+-- GROUP BY fd.generic_name
+-- ORDER BY totalcount DESC
+-- LIMIT 5;
+
+-----
+SELECT fam.generic_name,
+	fam.totalcount as fam_total,
+	car.totalcount as car_total
+FROM (
+SELECT fd.generic_name,
+	SUM(c.total_claim_count) as totalcount
+FROM prescription as c
+LEFT JOIN prescriber as p
+	USING(npi)
+LEFT JOIN drug as fd
+	USING(drug_name)
+WHERE p.specialty_description = 'Family Practice'	
+GROUP BY fd.generic_name
+ORDER BY totalcount DESC
+	LIMIT 5
+)AS fam
+INNER JOIN (
+	SELECT fd.generic_name,
+	SUM(c.total_claim_count) as totalcount
+FROM prescription as c
+LEFT JOIN prescriber as p
+	USING(npi)
+LEFT JOIN drug as fd
+	USING(drug_name)
+WHERE p.specialty_description = 'Cardiology'	
+GROUP BY fd.generic_name
+ORDER BY totalcount DESC
+	LIMIT 5
+)AS car
+USING(generic_name)
 
 	
+
+
